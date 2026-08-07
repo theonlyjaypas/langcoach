@@ -159,7 +159,7 @@ export default function VoiceRecorder({ onMessage, loading, onModeChange }: Voic
               className="voice-btn"
               title="Start voice recording"
             >
-              Record Voice
+              SPEAK
             </button>
           )}
         </div>

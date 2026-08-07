@@ -1,8 +1,8 @@
-const { OpenAI } = require('openai')
+const OpenAI = require('openai').default || require('openai')
 const { readFileSync } = require('fs')
 const { join } = require('path')
 
-const openai = new OpenAI({
+const openai = new (OpenAI.default || OpenAI)({
   apiKey: process.env.OPENAI_API_KEY
 })
 

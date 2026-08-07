@@ -1,9 +1,9 @@
-const { OpenAI } = require('openai')
+const OpenAI = require('openai').default || require('openai')
 const fs = require('fs')
 const path = require('path')
 const { writeFile } = require('fs/promises')
 
-const openai = new OpenAI({
+const openai = new (OpenAI.default || OpenAI)({
   apiKey: process.env.OPENAI_API_KEY
 })
 

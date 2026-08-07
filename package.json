@@ -1,0 +1,27 @@
+{
+  "name": "english-coach-bot",
+  "version": "1.0.0",
+  "description": "Voice-enabled English coaching chatbot on Vercel",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "concurrently \"npm run dev:client\" \"npm run dev:server\"",
+    "dev:client": "cd client && npm run dev",
+    "dev:server": "cd api && npx tsx dev.ts",
+    "build": "npm run build:client",
+    "build:client": "cd client && npm run build",
+    "install:all": "npm install && cd client && npm install && cd ../api && npm install && cd ..",
+    "vercel-build": "npm run install:all && npm run build",
+    "start": "cd client && npm run preview"
+  },
+  "dependencies": {
+    "dotenv": "^16.3.1"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.0",
+    "tsx": "^3.12.7"
+  },
+  "engines": {
+    "node": "18.x"
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "name": "english-coach-bot-api",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "echo 'Use npm run dev from root directory'",
+    "build": "echo 'Vercel builds automatically'"
+  },
+  "dependencies": {
+    "@elevenlabs/elevenlabs-js": "^2.61.0",
+    "@vercel/node": "^3.0.0",
+    "elevenlabs": "^1.59.0",
+    "openai": "^4.67.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.3.1",
+    "typescript": "^5.0.0"
+  }
+}

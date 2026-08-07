@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import '../styles/Login.css'
 
 interface LoginProps {
@@ -12,44 +12,32 @@ export default function Login({ onLogin }: LoginProps) {
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
 
-  useEffect(() => {
-    console.log('=== LOGIN COMPONENT MOUNTED ===')
-    console.log('All import.meta.env keys:', Object.keys(import.meta.env))
-    console.log('VITE_ID:', import.meta.env.VITE_ID)
-    console.log('VITE_PASSWORD:', import.meta.env.VITE_PASSWORD)
-    console.log('================================')
-  }, [])
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
     setIsLoading(true)
 
-    const validId = import.meta.env.VITE_ID || 'admin'
-    const validPassword = import.meta.env.VITE_PASSWORD || 'password'
+    try {
+      const response = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ username, password })
+      })
 
-    console.log('=== LOGIN DEBUG ===')
-    console.log('Environment Variables:')
-    console.log('  VITE_ID:', validId)
-    console.log('  VITE_PASSWORD:', validPassword)
-    console.log('User Input:')
-    console.log('  username:', username)
-    console.log('  password:', password)
-    console.log('Match check:')
-    console.log('  username match:', username === validId)
-    console.log('  password match:', password === validPassword)
-    console.log('=== END DEBUG ===')
-
-    setTimeout(() => {
-      if (username === validId && password === validPassword) {
+      if (response.ok) {
         localStorage.setItem('authToken', 'authenticated')
         onLogin()
       } else {
         setError('Invalid username or password')
         setPassword('')
       }
+    } catch (err) {
+      setError('Login failed. Please try again.')
+      setPassword('')
+    } finally {
       setIsLoading(false)
-    }, 500)
+    }
   }
 
   return (

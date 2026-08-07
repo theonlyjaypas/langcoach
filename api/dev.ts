@@ -310,6 +310,55 @@ async function handleTts(req: VercelRequest, res: VercelResponse) {
   }
 }
 
+async function handleLogin(req: VercelRequest, res: VercelResponse) {
+  const setCorsHeaders = (res: VercelResponse) => {
+    res.setHeader('Access-Control-Allow-Credentials', 'true')
+    res.setHeader('Access-Control-Allow-Origin', '*')
+    res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT')
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
+  }
+
+  setCorsHeaders(res)
+
+  if (req.method === 'OPTIONS') {
+    res.status?.(200).end?.()
+    return
+  }
+
+  try {
+    const { username, password } = req.body || {}
+
+    if (!username || !password) {
+      res.status?.(400)
+      res.json?.({ error: 'Username and password are required' })
+      return
+    }
+
+    const validUsername = process.env.VITE_ID || 'admin'
+    const validPassword = process.env.VITE_PASSWORD || 'password'
+
+    console.log('Login attempt for user:', username)
+
+    if (username === validUsername && password === validPassword) {
+      res.setHeader('Set-Cookie', 'authToken=authenticated; HttpOnly; Path=/; SameSite=Lax')
+      res.status?.(200)
+      res.json?.({ success: true, message: 'Login successful' })
+      return
+    } else {
+      res.status?.(401)
+      res.json?.({ error: 'Invalid username or password' })
+      return
+    }
+  } catch (error) {
+    console.error('Login error:', error)
+    res.status?.(500)
+    res.json?.({
+      error: 'Failed to process login request',
+      message: error instanceof Error ? error.message : 'Unknown error'
+    })
+  }
+}
+
 const server = createServer(async (req, res) => {
   let body = ''
 
@@ -320,6 +369,8 @@ const server = createServer(async (req, res) => {
   req.on('end', async () => {
     const parsedUrl = new url.URL(req.url || '', `http://${req.headers.host}`)
     const pathname = parsedUrl.pathname
+
+    console.log(`[${new Date().toISOString()}] ${req.method} ${pathname}`)
 
     const mockReq: VercelRequest = {
       method: req.method,
@@ -347,7 +398,10 @@ const server = createServer(async (req, res) => {
       }
     }
 
-    if (pathname === '/api/chat') {
+    if (pathname === '/api/login') {
+      console.log('Handling login request')
+      await handleLogin(mockReq, mockRes)
+    } else if (pathname === '/api/chat') {
       await handleChat(mockReq, mockRes)
     } else if (pathname === '/api/transcribe') {
       await handleTranscribe(mockReq, mockRes)
@@ -365,6 +419,7 @@ const server = createServer(async (req, res) => {
 server.listen(PORT, () => {
   console.log(`API server running on http://localhost:${PORT}`)
   console.log('Endpoints:')
+  console.log('  POST http://localhost:${PORT}/api/login')
   console.log('  POST http://localhost:${PORT}/api/chat')
   console.log('  POST http://localhost:${PORT}/api/transcribe')
   console.log('  POST http://localhost:${PORT}/api/summarize')

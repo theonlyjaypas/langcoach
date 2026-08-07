@@ -12,7 +12,7 @@ export default function VoiceRecorder({ onMessage, loading, onModeChange }: Voic
   const [isRecording, setIsRecording] = useState(false)
   const [recordingTime, setRecordingTime] = useState(0)
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
-  const recordingIntervalRef = useRef<NodeJS.Timeout | null>(null)
+  const recordingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const audioChunksRef = useRef<Blob[]>([])
 
   const startRecording = async () => {

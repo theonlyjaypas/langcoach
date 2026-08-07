@@ -65,25 +65,40 @@ export default function App() {
               return
             }
 
-            const audioData = `data:audio/mpeg;base64,${data.audio}`
-            const audio = new Audio(audioData)
-            currentAudioRef.current = audio
-            audio.volume = 1.0
+            try {
+              const binaryString = atob(data.audio)
+              const bytes = new Uint8Array(binaryString.length)
+              for (let i = 0; i < binaryString.length; i++) {
+                bytes[i] = binaryString.charCodeAt(i)
+              }
+              const blob = new Blob([bytes], { type: 'audio/mpeg' })
+              const audioUrl = URL.createObjectURL(blob)
 
-            audio.onended = () => {
-              console.log('Audio playback finished')
+              const audio = new Audio(audioUrl)
+              currentAudioRef.current = audio
+              audio.volume = 1.0
+
+              audio.onended = () => {
+                console.log('Audio playback finished')
+                URL.revokeObjectURL(audioUrl)
+                resolve()
+              }
+
+              audio.onerror = () => {
+                console.error('Audio playback error')
+                URL.revokeObjectURL(audioUrl)
+                resolve()
+              }
+
+              audio.play().catch(error => {
+                console.error('Error playing audio:', error)
+                URL.revokeObjectURL(audioUrl)
+                resolve()
+              })
+            } catch (error) {
+              console.error('Failed to create audio blob:', error)
               resolve()
             }
-
-            audio.onerror = () => {
-              console.error('Audio playback error')
-              resolve()
-            }
-
-            audio.play().catch(error => {
-              console.error('Error playing audio:', error)
-              resolve()
-            })
           })
           .catch(error => {
             console.error('Text-to-speech error:', error)

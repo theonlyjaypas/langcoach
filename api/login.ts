@@ -15,8 +15,8 @@ export default function handler(req: any, res: any) {
       return res.status(400).json({ error: 'Username and password are required' })
     }
 
-    const validUsername = process.env.VITE_ID
-    const validPassword = process.env.VITE_PASSWORD
+    const validUsername = 'admin'
+    const validPassword = 'R3load@24680'
 
     console.log('Login attempt:', { user: username, expectedUser: validUsername })
 

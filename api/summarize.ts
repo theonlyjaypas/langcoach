@@ -1,14 +1,8 @@
-import { VercelRequest, VercelResponse } from '@vercel/node'
-import { OpenAI } from 'openai'
+const { OpenAI } = require('openai')
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
 })
-
-interface Message {
-  role: 'user' | 'assistant'
-  content: string
-}
 
 module.exports = async function handler(req: any, res: any) {
   // Enable CORS

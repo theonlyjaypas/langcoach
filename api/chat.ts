@@ -1,7 +1,6 @@
-import { VercelRequest, VercelResponse } from '@vercel/node'
-import { OpenAI } from 'openai'
-import { readFileSync } from 'fs'
-import { join } from 'path'
+const { OpenAI } = require('openai')
+const { readFileSync } = require('fs')
+const { join } = require('path')
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
@@ -19,11 +18,6 @@ function loadSystemPrompt(): string {
 }
 
 const SYSTEM_PROMPT = loadSystemPrompt()
-
-interface Message {
-  role: 'user' | 'assistant'
-  content: string
-}
 
 module.exports = async function handler(req: any, res: any) {
   // Enable CORS

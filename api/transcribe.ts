@@ -1,8 +1,7 @@
-import { VercelRequest, VercelResponse } from '@vercel/node'
-import { OpenAI } from 'openai'
-import fs from 'fs'
-import path from 'path'
-import { writeFile } from 'fs/promises'
+const { OpenAI } = require('openai')
+const fs = require('fs')
+const path = require('path')
+const { writeFile } = require('fs/promises')
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY

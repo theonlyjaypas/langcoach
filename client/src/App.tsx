@@ -51,19 +51,24 @@ export default function App() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ text })
         })
-          .then(response => {
+          .then(async response => {
+            console.log('TTS response status:', response.status)
             if (!response.ok) {
-              console.error('Failed to generate speech')
+              const errorText = await response.text()
+              console.error('Failed to generate speech:', response.status, errorText)
               resolve()
-              return
+              throw new Error('TTS failed')
             }
-            return response.json()
+            const data = await response.json()
+            if (!data || !data.audio) {
+              console.error('No audio data in response:', data)
+              resolve()
+              throw new Error('No audio data')
+            }
+            console.log('TTS data received, audio length:', data.audio.length)
+            return data
           })
           .then(data => {
-            if (!data) {
-              resolve()
-              return
-            }
 
             try {
               const binaryString = atob(data.audio)

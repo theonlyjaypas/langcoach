@@ -1,4 +1,4 @@
-export default function handler(req: any, res: any) {
+module.exports = function handler(req: any, res: any) {
   try {
     console.log('Login called')
 

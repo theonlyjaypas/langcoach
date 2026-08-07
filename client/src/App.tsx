@@ -281,17 +281,10 @@ ${conversationLines}
         type: 'text'
       }
 
-      setMessages(prev => [...prev, assistantMessage])
-
       if (inputMode === 'voice') {
-        // Wait 5-10 seconds before speaking
-        const delayMs = 5000 + Math.random() * 5000
-        console.log(`Waiting ${delayMs / 1000}s before speaking`)
-        await new Promise(resolve => setTimeout(resolve, delayMs))
-
-        // Speak the response
         await speakText(data.reply)
       }
+      setMessages(prev => [...prev, assistantMessage])
     } catch (error) {
       console.error('Error:', error)
       const errorMessage: Message = {

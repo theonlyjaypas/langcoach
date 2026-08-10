@@ -1,9 +1,12 @@
 {
   "name": "english-coach-bot-api",
   "version": "1.0.0",
+  "type": "module",
   "scripts": {
     "dev": "echo 'Use npm run dev from root directory'",
-    "build": "echo 'Vercel builds automatically'"
+    "build": "echo 'Vercel builds automatically'",
+    "lint": "eslint . --ext .ts || true",
+    "type-check": "tsc --noEmit"
   },
   "dependencies": {
     "@elevenlabs/elevenlabs-js": "^2.61.0",
@@ -13,6 +16,12 @@
   },
   "devDependencies": {
     "@types/node": "^20.3.1",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "eslint": "^8.0.0",
     "typescript": "^5.0.0"
+  },
+  "engines": {
+    "node": "24.x"
   }
 }

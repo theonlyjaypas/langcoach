@@ -11,17 +11,37 @@
     "build": "npm run build:client",
     "build:client": "cd client && npm run build",
     "install:all": "npm install && cd client && npm install && cd ../api && npm install && cd ..",
-    "vercel-build": "npm run install:all && npm run build",
-    "start": "cd client && npm run preview"
+    "vercel-build": "npm run install:all && npm run build:client && npm run build:api",
+    "build:api": "cd api && npm run build",
+    "start": "cd client && npm run preview",
+    "lint": "npm run lint:client && npm run lint:api",
+    "lint:client": "cd client && npm run lint",
+    "lint:api": "cd api && npm run lint || true",
+    "test": "npm run test:client",
+    "test:client": "cd client && npm run test",
+    "preview": "cd client && npm run preview",
+    "vercel:debug": "vercel dev",
+    "prepare:vercel": "npm run install:all && npm run lint && npm run test:client"
   },
   "dependencies": {
     "dotenv": "^16.3.1"
   },
   "devDependencies": {
     "concurrently": "^8.2.0",
-    "tsx": "^3.12.7"
+    "tsx": "^3.12.7",
+    "vercel": "^33.0.0"
   },
   "engines": {
-    "node": "24.x"
-  }
+    "node": "24.x",
+    "npm": ">=10.0.0"
+  },
+  "keywords": [
+    "english-coaching",
+    "ai-powered",
+    "voice-enabled",
+    "chatbot",
+    "vercel"
+  ],
+  "author": "LangCoach",
+  "license": "MIT"
 }

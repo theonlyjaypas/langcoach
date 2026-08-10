@@ -1,0 +1,72 @@
+.voice-recorder {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md);
+  background: var(--color-bg-secondary);
+  border-radius: var(--radius-lg);
+}
+
+.recording-state {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.recording-badge {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  font-weight: 500;
+  font-size: 14px;
+  padding: var(--spacing-md) var(--spacing-lg);
+  background: rgba(220, 38, 38, 0.1);
+  border-radius: var(--radius-full);
+  border: 1px solid rgba(220, 38, 38, 0.3);
+}
+
+.recording-indicator {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #dc2626;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.3;
+  }
+}
+
+.transcript-preview {
+  padding: var(--spacing-md);
+  background: var(--color-bg);
+  border-radius: var(--radius-md);
+  border-left: 3px solid var(--color-accent);
+  margin-top: var(--spacing-md);
+}
+
+.transcript-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  margin-bottom: var(--spacing-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.transcript-text {
+  margin: 0 0 var(--spacing-md) 0;
+  line-height: 1.5;
+  color: var(--color-text);
+  word-break: break-word;
+  font-size: 14px;
+}

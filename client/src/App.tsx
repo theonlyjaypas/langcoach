@@ -1,307 +1,225 @@
-import { useState, useRef, useEffect } from 'react'
-import ChatInterface from './components/ChatInterface'
-import VoiceRecorder from './components/VoiceRecorder'
-import Login from './components/Login'
-import './App.css'
+import { useState, useRef, useEffect, useCallback } from 'react';
+import ChatInterface from './components/ChatInterface';
+import VoiceRecorder from './components/VoiceRecorder';
+import Login from './components/Login';
+import { ErrorBoundary } from './components/ErrorBoundary';
+import { ToastProvider, useToast } from './components/Toast';
+import { useAudioPlayback } from './hooks/useAudioPlayback';
+import { useConversationExport } from './hooks/useConversationExport';
+import type { Message, LoadingState } from './types';
+import './App.css';
 
-interface Message {
-  id: string
-  role: 'user' | 'assistant'
-  content: string
-  timestamp: Date
-  type: 'text' | 'voice'
+export default function AppWrapper() {
+  return (
+    <ErrorBoundary>
+      <ToastProvider>
+        <App />
+      </ToastProvider>
+    </ErrorBoundary>
+  );
 }
 
-export default function App() {
+function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
-    return localStorage.getItem('authToken') === 'authenticated'
-  })
-  const [messages, setMessages] = useState<Message[]>([])
-  const [loading, setLoading] = useState(false)
-  const [summarizing, setSummarizing] = useState(false)
-  const [generatingTakeaways, setGeneratingTakeaways] = useState(false)
-  const [inputMode, setInputMode] = useState<'text' | 'voice'>('text')
-  const messagesEndRef = useRef<HTMLDivElement>(null)
-  const currentAudioRef = useRef<HTMLAudioElement | null>(null)
+    return localStorage.getItem('authToken') === 'authenticated';
+  });
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [inputMode, setInputMode] = useState<'text' | 'voice'>('text');
+  const [theme, setTheme] = useState<'light' | 'dark'>(() => {
+    const stored = localStorage.getItem('theme');
+    if (stored) return stored as 'light' | 'dark';
+    return window.matchMedia('(prefers-color-scheme: dark)').matches
+      ? 'dark'
+      : 'light';
+  });
+  const [loading, setLoading] = useState<LoadingState>({
+    chat: false,
+    transcript: false,
+    takeaways: false,
+    auth: false,
+  });
 
-  const handleLogin = () => {
-    setIsAuthenticated(true)
-  }
-
-  const handleLogout = () => {
-    localStorage.removeItem('authToken')
-    setIsAuthenticated(false)
-    setMessages([])
-  }
-
-  const speakText = async (text: string): Promise<void> => {
-    return new Promise((resolve) => {
-      try {
-        if ('speechSynthesis' in window) {
-          window.speechSynthesis.cancel()
-        }
-
-        if (currentAudioRef.current) {
-          currentAudioRef.current.pause()
-          currentAudioRef.current.currentTime = 0
-        }
-
-        fetch('/api/tts', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ text })
-        })
-          .then(async response => {
-            console.log('TTS response status:', response.status)
-            if (!response.ok) {
-              const errorText = await response.text()
-              console.error('Failed to generate speech:', response.status, errorText)
-              resolve()
-              throw new Error('TTS failed')
-            }
-            const data = await response.json()
-            if (!data || !data.audio) {
-              console.error('No audio data in response:', data)
-              resolve()
-              throw new Error('No audio data')
-            }
-            console.log('TTS data received, audio length:', data.audio.length)
-            return data
-          })
-          .then(data => {
-
-            try {
-              const binaryString = atob(data.audio)
-              const bytes = new Uint8Array(binaryString.length)
-              for (let i = 0; i < binaryString.length; i++) {
-                bytes[i] = binaryString.charCodeAt(i)
-              }
-              const blob = new Blob([bytes], { type: 'audio/mpeg' })
-              const audioUrl = URL.createObjectURL(blob)
-
-              const audio = new Audio(audioUrl)
-              currentAudioRef.current = audio
-              audio.volume = 1.0
-
-              audio.onended = () => {
-                console.log('Audio playback finished')
-                URL.revokeObjectURL(audioUrl)
-                resolve()
-              }
-
-              audio.onerror = () => {
-                console.error('Audio playback error')
-                URL.revokeObjectURL(audioUrl)
-                resolve()
-              }
-
-              audio.play().catch(error => {
-                console.error('Error playing audio:', error)
-                URL.revokeObjectURL(audioUrl)
-                resolve()
-              })
-            } catch (error) {
-              console.error('Failed to create audio blob:', error)
-              resolve()
-            }
-          })
-          .catch(error => {
-            console.error('Text-to-speech error:', error)
-            resolve()
-          })
-      } catch (error) {
-        console.error('Text-to-speech error:', error)
-        resolve()
-      }
-    })
-  }
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
+  const { show: showToast } = useToast();
+  const { play: speakText } = useAudioPlayback();
+  const { exportAsMarkdown } = useConversationExport();
 
   useEffect(() => {
-    scrollToBottom()
-  }, [messages])
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('theme', theme);
+  }, [theme]);
 
-  const handleTranscript = () => {
+  useEffect(() => {
+    return () => {
+      abortControllerRef.current?.abort();
+    };
+  }, []);
+
+  const handleLogin = useCallback(() => {
+    setIsAuthenticated(true);
+  }, []);
+
+  const handleLogout = useCallback(() => {
+    if (confirm('Are you sure you want to logout?')) {
+      localStorage.removeItem('authToken');
+      setIsAuthenticated(false);
+      setMessages([]);
+      showToast('Logged out successfully', 'success');
+    }
+  }, [showToast]);
+
+  const toggleTheme = useCallback(() => {
+    setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
+  }, []);
+
+  useEffect(() => {
+    const scrollContainer = messagesEndRef.current?.parentElement;
+    if (!scrollContainer) return;
+
+    const isAtBottom =
+      scrollContainer.scrollHeight - scrollContainer.scrollTop - scrollContainer.clientHeight < 100;
+
+    if (isAtBottom && messages.length > 0) {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [messages[messages.length - 1]?.timestamp]);
+
+  const handleTranscript = useCallback(() => {
     if (messages.length === 0) {
-      alert('No conversation to download. Start chatting with the coach first!')
-      return
+      showToast('No conversation to download. Start chatting with the coach first!', 'warning');
+      return;
     }
 
-    setSummarizing(true)
     try {
-      const timestamp = new Date().toLocaleString()
-      const markdown = generateMarkdownSummary(messages, timestamp)
-      downloadMarkdownFile(markdown)
+      setLoading((prev) => ({ ...prev, transcript: true }));
+      exportAsMarkdown(messages);
+      showToast('Transcript downloaded', 'success');
     } catch (error) {
-      console.error('Error:', error)
-      alert('Failed to generate transcript.')
+      showToast(
+        error instanceof Error ? error.message : 'Failed to generate transcript',
+        'error'
+      );
     } finally {
-      setSummarizing(false)
+      setLoading((prev) => ({ ...prev, transcript: false }));
     }
-  }
+  }, [messages, showToast, exportAsMarkdown]);
 
-  const handleKeyTakeaways = async () => {
+  const handleKeyTakeaways = useCallback(async () => {
     if (messages.length === 0) {
-      alert('No conversation yet. Start chatting with the coach first!')
-      return
+      showToast('No conversation yet. Start chatting with the coach first!', 'warning');
+      return;
     }
 
-    setGeneratingTakeaways(true)
+    setLoading((prev) => ({ ...prev, takeaways: true }));
     try {
+      abortControllerRef.current = new AbortController();
       const conversationText = messages
-        .map(msg => `${msg.role === 'user' ? 'User' : 'Coach'}: ${msg.content}`)
-        .join('\n\n')
+        .map((msg) => `${msg.role === 'user' ? 'User' : 'Coach'}: ${msg.content}`)
+        .join('\n\n');
 
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           message: `Based on our conversation, please provide the key takeaways from this English coaching session. Format them as a clear, numbered list.\n\nConversation:\n${conversationText}`,
-          conversationHistory: messages
-        })
-      })
+          conversationHistory: messages,
+        }),
+        signal: abortControllerRef.current.signal,
+      });
 
-      if (!response.ok) throw new Error('Failed to generate takeaways')
+      if (!response.ok) {
+        throw new Error('Failed to generate takeaways');
+      }
 
-      const data = await response.json()
+      const data = await response.json();
 
       const takeawaysMessage: Message = {
-        id: (Date.now() + 1).toString(),
+        id: Date.now().toString(),
         role: 'assistant',
         content: data.reply,
         timestamp: new Date(),
-        type: 'text'
-      }
+        type: 'text',
+      };
 
-      setMessages(prev => [...prev, takeawaysMessage])
+      setMessages((prev) => [...prev, takeawaysMessage]);
+      showToast('Takeaways generated', 'success');
     } catch (error) {
-      console.error('Error:', error)
-      const errorMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        role: 'assistant',
-        content: 'Sorry, I encountered an error generating key takeaways. Please try again.',
-        timestamp: new Date(),
-        type: 'text'
+      if (error instanceof Error && error.name !== 'AbortError') {
+        showToast(
+          error instanceof Error ? error.message : 'Failed to generate takeaways',
+          'error'
+        );
       }
-      setMessages(prev => [...prev, errorMessage])
     } finally {
-      setGeneratingTakeaways(false)
+      setLoading((prev) => ({ ...prev, takeaways: false }));
     }
-  }
+  }, [messages, showToast]);
 
-  const generateMarkdownSummary = (messages: Message[], timestamp: string) => {
-    const conversationLines = messages.map(msg => {
-      const role = msg.role === 'user' ? 'You' : 'Coach'
-      return `**${role}:** ${msg.content}\n`
-    }).join('\n')
+  const sendMessage = useCallback(
+    async (content: string, type: 'text' | 'voice' = 'text') => {
+      if (!content.trim()) return;
 
-    return `# English Coaching Session Summary
-
-**Generated:** ${timestamp}
-**Total Messages:** ${messages.length}
-
----
-
-## Conversation
-
-${conversationLines}
-
----
-
-## Statistics
-
-- **Total Messages:** ${messages.length}
-- **User Messages:** ${messages.filter(m => m.role === 'user').length}
-- **Coach Messages:** ${messages.filter(m => m.role === 'assistant').length}
-- **Session Duration:** ${getSessionDuration(messages)}
-
----
-
-*Downloaded from English Speaking Coach*
-`
-  }
-
-  const getSessionDuration = (messages: Message[]) => {
-    if (messages.length === 0) return 'N/A'
-    const firstMsg = messages[0]
-    const lastMsg = messages[messages.length - 1]
-    const duration = lastMsg.timestamp.getTime() - firstMsg.timestamp.getTime()
-    const minutes = Math.floor(duration / 60000)
-    const seconds = Math.floor((duration % 60000) / 1000)
-    return `${minutes}m ${seconds}s`
-  }
-
-  const downloadMarkdownFile = (content: string) => {
-    const element = document.createElement('a')
-    const file = new Blob([content], { type: 'text/markdown' })
-    element.href = URL.createObjectURL(file)
-    element.download = 'transcript.md'
-    document.body.appendChild(element)
-    element.click()
-    document.body.removeChild(element)
-    URL.revokeObjectURL(element.href)
-  }
-
-  const sendMessage = async (content: string, type: 'text' | 'voice' = 'text') => {
-    if (!content.trim()) return
-
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      role: 'user',
-      content,
-      timestamp: new Date(),
-      type
-    }
-
-    setMessages(prev => [...prev, userMessage])
-    setLoading(true)
-
-    try {
-      const response = await fetch('/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          message: content,
-          conversationHistory: messages
-        })
-      })
-
-      if (!response.ok) throw new Error('Failed to get response')
-
-      const data = await response.json()
-
-      const assistantMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        role: 'assistant',
-        content: data.reply,
+      const userMessage: Message = {
+        id: Date.now().toString(),
+        role: 'user',
+        content,
         timestamp: new Date(),
-        type: 'text'
-      }
+        type,
+      };
 
-      if (inputMode === 'voice') {
-        await speakText(data.reply)
+      setMessages((prev) => [...prev, userMessage]);
+      setLoading((prev) => ({ ...prev, chat: true }));
+
+      try {
+        abortControllerRef.current = new AbortController();
+        const response = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            message: content,
+            conversationHistory: messages,
+          }),
+          signal: abortControllerRef.current.signal,
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to get response');
+        }
+
+        const data = await response.json();
+
+        const assistantMessage: Message = {
+          id: Date.now().toString(),
+          role: 'assistant',
+          content: data.reply,
+          timestamp: new Date(),
+          type: 'text',
+        };
+
+        setMessages((prev) => [...prev, assistantMessage]);
+
+        if (inputMode === 'voice') {
+          await speakText(data.reply);
+        }
+
+        showToast('Message received', 'success');
+      } catch (error) {
+        if (error instanceof Error && error.name !== 'AbortError') {
+          showToast(
+            error instanceof Error ? error.message : 'Failed to send message',
+            'error'
+          );
+        }
+      } finally {
+        setLoading((prev) => ({ ...prev, chat: false }));
       }
-      setMessages(prev => [...prev, assistantMessage])
-    } catch (error) {
-      console.error('Error:', error)
-      const errorMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        role: 'assistant',
-        content: 'Sorry, I encountered an error. Please try again.',
-        timestamp: new Date(),
-        type: 'text'
-      }
-      setMessages(prev => [...prev, errorMessage])
-    } finally {
-      setLoading(false)
-    }
-  }
+    },
+    [inputMode, messages, showToast, speakText]
+  );
 
   if (!isAuthenticated) {
-    return <Login onLogin={handleLogin} />
+    return <Login onLogin={handleLogin} />;
   }
 
   return (
@@ -310,36 +228,62 @@ ${conversationLines}
         <div className="header-buttons">
           <button
             onClick={handleTranscript}
-            disabled={summarizing || messages.length === 0}
+            disabled={loading.transcript || messages.length === 0}
             className="summarize-btn"
             title="Download conversation transcript"
+            aria-label="Download transcript"
           >
-            {summarizing ? 'Downloading...' : 'Transcript'}
+            {loading.transcript ? 'Downloading...' : 'Transcript'}
           </button>
           <button
             onClick={handleKeyTakeaways}
-            disabled={generatingTakeaways || messages.length === 0}
+            disabled={loading.takeaways || messages.length === 0}
             className="takeaways-btn"
             title="Generate key takeaways from the conversation"
+            aria-label="Generate takeaways"
           >
-            {generatingTakeaways ? 'Generating...' : 'Key Takeaways'}
+            {loading.takeaways ? 'Generating...' : 'Key Takeaways'}
+          </button>
+        </div>
+        <h1>LangCoach</h1>
+        <p>Improve your English with AI-powered coaching</p>
+        <div className="header-actions">
+          <button
+            onClick={toggleTheme}
+            className="theme-toggle"
+            aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+            title="Toggle dark mode"
+          >
+            {theme === 'dark' ? '☀️' : '🌙'}
           </button>
           <button
             onClick={handleLogout}
             className="logout-btn"
             title="Logout"
+            aria-label="Logout"
           >
             Logout
           </button>
         </div>
-        <h1>LangCoach</h1>
-        <p>Improve your English with AI-powered coaching</p>
       </header>
 
       <main className="chat-main">
-        <ChatInterface messages={messages} loading={loading} messagesEndRef={messagesEndRef} />
-        <VoiceRecorder onMessage={sendMessage} loading={loading} onModeChange={setInputMode} />
+        <ChatInterface
+          messages={messages}
+          loading={loading.chat}
+          messagesEndRef={messagesEndRef}
+          onDeleteMessage={(id) => {
+            setMessages((prev) => prev.filter((m) => m.id !== id));
+            showToast('Message deleted', 'info');
+          }}
+          onPromptSelect={(prompt) => sendMessage(prompt)}
+        />
+        <VoiceRecorder
+          onMessage={sendMessage}
+          loading={loading.chat}
+          onModeChange={setInputMode}
+        />
       </main>
     </div>
-  )
+  );
 }

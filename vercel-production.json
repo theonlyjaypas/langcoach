@@ -8,13 +8,35 @@
     "VITE_API_URL": "@vite-api-url",
     "VITE_PASSWORD": "@vite-password",
     "OPENAI_API_KEY": "@openai-api-key",
-    "ELEVENLABS_API_KEY": "@elevenlabs-api-key"
+    "ELEVENLABS_API_KEY": "@elevenlabs-api-key",
+    "NODE_ENV": "production"
   },
   "regions": ["iad1"],
   "functions": {
-    "api/*.ts": {
+    "api/chat.ts": {
       "maxDuration": 30,
-      "memory": 1024
+      "memory": 1024,
+      "runtime": "nodejs20.x"
+    },
+    "api/transcribe.ts": {
+      "maxDuration": 30,
+      "memory": 1024,
+      "runtime": "nodejs20.x"
+    },
+    "api/tts.ts": {
+      "maxDuration": 15,
+      "memory": 512,
+      "runtime": "nodejs20.x"
+    },
+    "api/login.ts": {
+      "maxDuration": 5,
+      "memory": 128,
+      "runtime": "nodejs20.x"
+    },
+    "api/summarize.ts": {
+      "maxDuration": 20,
+      "memory": 512,
+      "runtime": "nodejs20.x"
     }
   },
   "headers": [
@@ -23,7 +45,7 @@
       "headers": [
         {
           "key": "Cache-Control",
-          "value": "no-cache, no-store, must-revalidate"
+          "value": "no-cache, no-store, must-revalidate, private"
         },
         {
           "key": "X-Content-Type-Options",
@@ -44,7 +66,7 @@
       ]
     },
     {
-      "source": "/static/(.*)",
+      "source": "/(.*\\.js|.*\\.css)",
       "headers": [
         {
           "key": "Cache-Control",
@@ -53,7 +75,7 @@
       ]
     },
     {
-      "source": "/(.*\\.js|.*\\.css|.*\\.woff2|.*\\.png|.*\\.svg|.*\\.jpg)",
+      "source": "/assets/(.*)",
       "headers": [
         {
           "key": "Cache-Control",
@@ -66,7 +88,7 @@
       "headers": [
         {
           "key": "Strict-Transport-Security",
-          "value": "max-age=63072000; includeSubDomains"
+          "value": "max-age=63072000; includeSubDomains; preload"
         },
         {
           "key": "X-Content-Type-Options",
@@ -86,7 +108,7 @@
         },
         {
           "key": "Permissions-Policy",
-          "value": "microphone=(self), camera=()"
+          "value": "microphone=(self), camera=(), geolocation=(), payment=()"
         }
       ]
     }
@@ -101,11 +123,18 @@
       "destination": "/index.html"
     }
   ],
-  "redirects": [
+  "redirects": [],
+  "buildGroups": [
     {
-      "source": "/transcript",
-      "destination": "/",
-      "permanent": false
+      "src": "client/**",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "client/dist"
+      }
+    },
+    {
+      "src": "api/**",
+      "use": "@vercel/node"
     }
   ]
 }

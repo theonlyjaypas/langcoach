@@ -4,12 +4,6 @@
   "installCommand": "npm run install:all",
   "framework": null,
   "outputDirectory": "client/dist",
-  "env": {
-    "VITE_API_URL": "@vite-api-url",
-    "VITE_PASSWORD": "@vite-password",
-    "OPENAI_API_KEY": "@openai-api-key",
-    "ELEVENLABS_API_KEY": "@elevenlabs-api-key"
-  },
   "regions": ["iad1"],
   "functions": {
     "api/*.ts": {

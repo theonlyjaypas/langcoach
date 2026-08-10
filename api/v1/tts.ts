@@ -3,6 +3,20 @@ import { enableCors, handleOptionsRequest, validateRequest, validateNonEmpty } f
 import { sendError, ApiError, ErrorCodes } from '../errors'
 import type { TTSRequest, TTSResponse } from '../types'
 
+const ALLOWED_VOICES = [
+  '21m00Tcm4TlvDq8ikWAM' // Default English voice
+]
+
+function validateVoiceId(voice: string): void {
+  if (!ALLOWED_VOICES.includes(voice)) {
+    throw new ApiError(
+      400,
+      ErrorCodes.INVALID_INPUT,
+      `Invalid voice ID. Allowed voices: ${ALLOWED_VOICES.join(', ')}`
+    )
+  }
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
   try {
     // Handle CORS preflight
@@ -17,6 +31,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
     const { text, voice = '21m00Tcm4TlvDq8ikWAM' } = req.body as TTSRequest
 
     validateNonEmpty(text, 'Text')
+    validateVoiceId(voice)
 
     // Check for API key
     const apiKey = process.env.ELEVENLABS_API_KEY

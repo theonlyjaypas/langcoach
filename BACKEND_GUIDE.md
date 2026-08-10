@@ -96,12 +96,10 @@ res.status(200).json(response)
 ## Available Endpoints
 
 ### Authentication
-- `POST /api/v1/login` - Authenticate user
-- `POST /api/login` - (Deprecated, use v1)
+- `POST /api/login` - Authenticate user
 
 ### Chat
-- `POST /api/v1/chat` - Send message to English coach
-- `POST /api/chat` - (Deprecated, use v1)
+- `POST /api/chat` - Send message to English coach
 
 Request:
 ```json
@@ -115,8 +113,7 @@ Request:
 ```
 
 ### Transcription
-- `POST /api/v1/transcribe` - Transcribe audio to text
-- `POST /api/transcribe` - (Deprecated, use v1)
+- `POST /api/transcribe` - Transcribe audio to text
 
 Request:
 ```json
@@ -126,8 +123,7 @@ Request:
 ```
 
 ### Summarization
-- `POST /api/v1/summarize` - Summarize conversation
-- `POST /api/summarize` - (Deprecated, use v1)
+- `POST /api/summarize` - Summarize conversation
 
 Request:
 ```json
@@ -140,8 +136,7 @@ Request:
 ```
 
 ### Text-to-Speech
-- `POST /api/v1/tts` - Generate speech from text
-- `POST /api/tts` - (Deprecated, use v1)
+- `POST /api/tts` - Generate speech from text
 
 Request:
 ```json
@@ -182,38 +177,39 @@ npm run dev
 
 ## Adding a New Endpoint
 
-1. Create a new file in `api/v1/new-endpoint.ts`
-2. Use the standard middleware pattern
-3. Create request/response types in `types.ts`
-4. Create a wrapper in `api/new-endpoint.ts` for backwards compatibility
+1. Add request/response types in `types.ts`
+2. Create a handler function in `index.ts` following the existing pattern
+3. Add routing logic in the main handler to match your endpoint path
+4. Update documentation
 
 ```typescript
-// api/v1/new-endpoint.ts
-import { VercelRequest, VercelResponse } from '@vercel/node'
-import { handleOptionsRequest, validateRequest } from '../middleware'
-import { sendError, ApiError, ErrorCodes } from '../errors'
-import type { NewEndpointRequest, NewEndpointResponse } from '../types'
+// In types.ts
+export interface NewEndpointRequest {
+  // your fields
+}
 
-export default async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
+export interface NewEndpointResponse {
+  // your response fields
+}
+
+// In index.ts
+async function handleNewEndpoint(req: VercelRequest, res: VercelResponse): Promise<void> {
   try {
-    if (handleOptionsRequest(req, res)) return
     validateRequest(req, res, { methods: ['POST'] })
-
     const data = req.body as NewEndpointRequest
-    // Your logic here
     
+    // Your logic here
     const response: NewEndpointResponse = { /* ... */ }
     res.status(200).json(response)
   } catch (error) {
     sendError(res, error)
   }
 }
-```
 
-```typescript
-// api/new-endpoint.ts (backwards compatibility)
-import handler from './v1/new-endpoint'
-export default handler
+// In the main handler, add routing:
+if (pathname.includes('/new-endpoint')) {
+  await handleNewEndpoint(req, res)
+}
 ```
 
 ## Debugging

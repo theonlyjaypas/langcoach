@@ -66,24 +66,23 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
 - Guaranteed file deletion via finally block
 - Unique file naming to prevent conflicts
 
-### 5. API Versioning
-- Introduced `/api/v1/` route prefix for all endpoints
-- Maintains backwards compatibility with old routes
-- Old endpoints (`/api/chat`, etc.) delegate to v1 implementations
+### 5. Unified API Router
+- Consolidated all endpoints into a single `index.ts` router
+- Reduces serverless function count for Vercel Hobby plan compatibility
+- Internal routing based on URL path
+- Maintains backwards compatibility with all existing endpoints
 
-**New Routes:**
-- `/api/v1/chat` - Chat with English coach
-- `/api/v1/transcribe` - Transcribe audio to text
-- `/api/v1/summarize` - Summarize conversation
-- `/api/v1/tts` - Text-to-speech synthesis
-- `/api/v1/login` - User authentication
+**Available Routes:**
+- `POST /api/chat` - Chat with English coach
+- `POST /api/transcribe` - Transcribe audio to text
+- `POST /api/summarize` - Summarize conversation
+- `POST /api/tts` - Text-to-speech synthesis
+- `POST /api/login` - User authentication
 
-**Old Routes (Deprecated but Functional):**
-- `/api/chat` (delegates to v1)
-- `/api/transcribe` (delegates to v1)
-- `/api/summarize` (delegates to v1)
-- `/api/tts` (delegates to v1)
-- `/api/login` (delegates to v1)
+**Routing:** All routes use internal path matching in `index.ts`:
+- `/api/*` -> routes to appropriate handler based on path
+- Single `index.ts` file handles all endpoint logic
+- Reduces function count: 5 endpoints in 1 function
 
 ### 6. Type Safety
 - Created `types.ts` with interfaces for all request/response types
@@ -118,44 +117,32 @@ AUTH_PASSWORD=your_secure_password_here
 
 ```
 api/
-├── v1/                          # New v1 endpoints
-│   ├── chat.ts
-│   ├── transcribe.ts
-│   ├── summarize.ts
-│   ├── tts.ts
-│   └── login.ts
+├── index.ts                    # Unified API router with all endpoints
 ├── middleware.ts               # Centralized CORS and validation
 ├── errors.ts                   # Error handling utilities
 ├── types.ts                    # TypeScript interfaces
 ├── tempFile.ts                 # Temporary file utilities
-├── chat.ts                     # Backwards compatibility wrapper
-├── transcribe.ts               # Backwards compatibility wrapper
-├── summarize.ts                # Backwards compatibility wrapper
-├── tts.ts                      # Backwards compatibility wrapper
-├── login.ts                    # Backwards compatibility wrapper
-├── dev.ts                      # Local development server
+├── dev.ts                      # Local development server (for development only)
 └── tsconfig.json               # TypeScript configuration
 ```
 
+**Key Design:**
+- Single `index.ts` consolidates all 5 endpoint handlers
+- Internal routing based on URL path matching
+- Reduces serverless function count for Vercel Hobby plan
+- Cleaner deployment and easier maintenance
+
 ## Migration Guide
 
-### For Existing Clients
-No changes required. Old endpoints continue to work:
+### No Breaking Changes
+All existing endpoints continue to work as before:
 - `POST /api/chat` - Still functional
 - `POST /api/transcribe` - Still functional
 - `POST /api/summarize` - Still functional
 - `POST /api/tts` - Still functional
 - `POST /api/login` - Still functional
 
-### For New Clients
-Consider updating to use v1 routes:
-```javascript
-// Old
-fetch('/api/chat', { method: 'POST', body: JSON.stringify(data) })
-
-// New (Recommended)
-fetch('/api/v1/chat', { method: 'POST', body: JSON.stringify(data) })
-```
+The internal routing is transparent to clients. All requests are routed through the unified `index.ts` handler based on URL path matching.
 
 ## Environment Variables Required
 

@@ -168,25 +168,30 @@ export default function VoiceRecorder({
       </div>
 
       {mode === 'text' ? (
-        <form onSubmit={handleSendText} className="text-input-form">
-          <input
-            type="text"
-            value={textInput}
-            onChange={(e) => setTextInput(e.target.value)}
-            placeholder="Type your message..."
-            disabled={loading}
-            className="text-input"
-            autoFocus
-          />
-          <button
-            type="submit"
-            disabled={loading || !textInput.trim()}
-            className="send-btn"
-            aria-label="Send message"
-          >
-            Send
-          </button>
-        </form>
+        <div className="text-input-container">
+          <form onSubmit={handleSendText} className="text-input-form">
+            <input
+              type="text"
+              value={textInput}
+              onChange={(e) => setTextInput(e.target.value)}
+              placeholder="Type your message..."
+              disabled={loading}
+              className="text-input"
+              autoFocus
+            />
+            <button
+              type="submit"
+              disabled={loading || !textInput.trim()}
+              className="send-btn"
+              aria-label="Send message"
+            >
+              Send
+            </button>
+          </form>
+          <div className="character-count">
+            {textInput.length} characters
+          </div>
+        </div>
       ) : (
         <div className="voice-controls">
           {state.isRecording ? (

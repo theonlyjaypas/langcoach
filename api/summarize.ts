@@ -1,10 +1,8 @@
-const OpenAI = require('openai').default || require('openai')
-
-const openai = new (OpenAI.default || OpenAI)({
-  apiKey: process.env.OPENAI_API_KEY
-})
-
 module.exports = async function handler(req: any, res: any) {
+  const OpenAI = require('openai').default || require('openai')
+  const openai = new (OpenAI.default || OpenAI)({
+    apiKey: process.env.OPENAI_API_KEY
+  })
   // Enable CORS
   res.setHeader('Access-Control-Allow-Credentials', 'true')
   res.setHeader('Access-Control-Allow-Origin', '*')

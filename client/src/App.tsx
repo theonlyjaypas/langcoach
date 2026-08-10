@@ -73,6 +73,18 @@ function App() {
     setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
   }, []);
 
+  const handleClearChat = useCallback(() => {
+    if (messages.length === 0) {
+      showToast('No conversation to clear', 'info');
+      return;
+    }
+
+    if (confirm('Clear all messages? This cannot be undone.')) {
+      setMessages([]);
+      showToast('Conversation cleared', 'success');
+    }
+  }, [messages.length, showToast]);
+
   useEffect(() => {
     const scrollContainer = messagesEndRef.current?.parentElement;
     if (!scrollContainer) return;
@@ -243,6 +255,15 @@ function App() {
             aria-label="Generate takeaways"
           >
             {loading.takeaways ? 'Generating...' : 'Key Takeaways'}
+          </button>
+          <button
+            onClick={handleClearChat}
+            disabled={messages.length === 0}
+            className="clear-chat-btn"
+            title="Clear conversation"
+            aria-label="Clear conversation"
+          >
+            Clear Chat
           </button>
         </div>
         <h1>LangCoach</h1>

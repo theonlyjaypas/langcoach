@@ -24,6 +24,7 @@ interface VercelRequest {
 
 interface VercelResponse {
   statusCode?: number
+  headers?: Record<string, string>
   status?: (code: number) => VercelResponse
   json?: (data: any) => void
   setHeader: (key: string, value: string) => void

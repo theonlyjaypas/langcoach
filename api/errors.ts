@@ -25,6 +25,8 @@ export const ErrorCodes = {
 }
 
 export function sendError(res: VercelResponse, error: unknown): void {
+  const isDevelopment = process.env.NODE_ENV === 'development'
+
   console.error('Error:', error)
 
   if (error instanceof ApiError) {
@@ -39,8 +41,11 @@ export function sendError(res: VercelResponse, error: unknown): void {
   if (error instanceof Error) {
     const response: ApiErrorResponse = {
       error: 'Internal server error',
-      message: error.message,
       code: ErrorCodes.INTERNAL_ERROR
+    }
+    // Only expose error details in development
+    if (isDevelopment) {
+      response.message = error.message
     }
     res.status(500).json(response)
     return

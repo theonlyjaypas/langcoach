@@ -6,8 +6,12 @@ export interface MiddlewareOptions {
 }
 
 export function enableCors(res: VercelResponse): void {
+  // Get allowed origins from environment, default to localhost for development
+  const allowedOrigins = process.env.CORS_ALLOWED_ORIGINS?.split(',') || ['http://localhost:5173', 'http://localhost:3000']
+  const requestOrigin = process.env.CORS_ALLOW_ALL === 'true' ? '*' : allowedOrigins[0]
+
   res.setHeader('Access-Control-Allow-Credentials', 'true')
-  res.setHeader('Access-Control-Allow-Origin', '*')
+  res.setHeader('Access-Control-Allow-Origin', requestOrigin)
   res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT')
   res.setHeader(
     'Access-Control-Allow-Headers',

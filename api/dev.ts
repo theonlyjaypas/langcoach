@@ -15,7 +15,7 @@ const server = createServer(async (req, res) => {
   })
 
   req.on('end', async () => {
-    let mockRes: MinimalResponse
+    let mockRes: MinimalResponse | undefined
 
     try {
       const parsedUrl = new URL(req.url || '', `http://${req.headers.host}`)

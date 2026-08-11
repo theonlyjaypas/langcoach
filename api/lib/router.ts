@@ -124,7 +124,7 @@ async function handleSummarize(req: MinimalRequest, res: MinimalResponse): Promi
   }))
 
   const conversationText = messages
-    .map((msg) => `${msg.role === 'user' ? 'User' : 'Coach'}: ${msg.content}`)
+    .map((msg: Message) => `${msg.role === 'user' ? 'User' : 'Coach'}: ${msg.content}`)
     .filter((line: string) => line.length > 0)
     .join('\n')
 

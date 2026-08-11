@@ -10,7 +10,7 @@ export async function listSessions(userId: number): Promise<ChatSession[]> {
     ORDER BY updated_at DESC
   `
 
-  return result.map((row: ChatSessionRow) => ({
+  return (result as ChatSessionRow[]).map((row) => ({
     id: row.id,
     title: row.title,
     createdAt: row.created_at,
@@ -65,7 +65,7 @@ export async function getSessionWithMessages(
     ORDER BY created_at ASC
   `
 
-  const messages: ChatMessage[] = messagesResult.map((row: ChatMessageRow) => ({
+  const messages: ChatMessage[] = (messagesResult as ChatMessageRow[]).map((row) => ({
     id: row.id,
     role: row.role,
     content: row.content,
@@ -166,7 +166,7 @@ export async function getLastMessagesForSession(sessionId: number): Promise<Arra
     ORDER BY created_at ASC
   `
 
-  return result.map((row: ChatMessageRow) => ({
+  return (result as ChatMessageRow[]).map((row) => ({
     role: row.role,
     content: row.content
   }))

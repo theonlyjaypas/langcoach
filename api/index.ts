@@ -14,12 +14,22 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
 
     const url = req.url || ''
     const pathname = new URL(url, `http://${req.headers.host || 'localhost'}`).pathname
+    const method = (req.method || 'GET').toUpperCase()
+
+    let body = req.body
+    if (typeof body === 'string') {
+      try {
+        body = JSON.parse(body)
+      } catch {
+        body = {}
+      }
+    }
 
     const minimalReq: MinimalRequest = {
-      method: req.method?.toUpperCase(),
+      method,
       url: req.url,
       headers: req.headers as Record<string, string>,
-      body: req.body
+      body
     }
     const minimalRes = res as unknown as MinimalResponse
 

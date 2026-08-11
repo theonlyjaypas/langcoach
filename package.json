@@ -8,6 +8,7 @@
     "dev": "concurrently \"npm run dev:client\" \"npm run dev:server\"",
     "dev:client": "cd client && npm run dev",
     "dev:server": "cd api && npx tsx dev.ts",
+    "db:setup": "cd api && npx tsx scripts/setup-db.ts",
     "build": "npm run build:client",
     "build:client": "cd client && npm run build",
     "install:all": "npm install && cd client && npm install && cd ../api && npm install && cd ..",

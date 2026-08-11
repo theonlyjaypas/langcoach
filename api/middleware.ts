@@ -1,14 +1,19 @@
 import { VercelRequest, VercelResponse } from '@vercel/node'
 import { ApiError, ErrorCodes, validateHttpMethod } from './errors'
+import type { MinimalRequest, MinimalResponse } from './types'
 
 export interface MiddlewareOptions {
   methods?: string[]
 }
 
-export function enableCors(res: VercelResponse): void {
-  // Get allowed origins from environment, default to localhost for development
+export function enableCors(req: VercelRequest | MinimalRequest, res: VercelResponse | MinimalResponse): void {
   const allowedOrigins = process.env.CORS_ALLOWED_ORIGINS?.split(',') || ['http://localhost:5173', 'http://localhost:3000']
-  const requestOrigin = process.env.CORS_ALLOW_ALL === 'true' ? '*' : allowedOrigins[0]
+
+  let requestOrigin = allowedOrigins[0]
+  const origin = req.headers.origin
+  if (origin && allowedOrigins.includes(origin)) {
+    requestOrigin = origin
+  }
 
   res.setHeader('Access-Control-Allow-Credentials', 'true')
   res.setHeader('Access-Control-Allow-Origin', requestOrigin)
@@ -20,21 +25,21 @@ export function enableCors(res: VercelResponse): void {
   res.setHeader('Content-Type', 'application/json')
 }
 
-export function handleOptionsRequest(req: VercelRequest, res: VercelResponse): boolean {
+export function handleOptionsRequest(req: VercelRequest | MinimalRequest, res: VercelResponse | MinimalResponse): boolean {
   if (req.method === 'OPTIONS') {
-    enableCors(res)
-    res.status(200).end()
+    enableCors(req, res)
+    res.status(200).end?.()
     return true
   }
   return false
 }
 
 export function validateRequest(
-  req: VercelRequest,
-  res: VercelResponse,
+  req: VercelRequest | MinimalRequest,
+  res: VercelResponse | MinimalResponse,
   options: MiddlewareOptions = {}
 ): void {
-  enableCors(res)
+  enableCors(req, res)
 
   const allowedMethods = options.methods || ['POST']
   validateHttpMethod(req.method || 'GET', allowedMethods)

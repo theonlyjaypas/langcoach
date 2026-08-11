@@ -266,6 +266,42 @@
   background: #334155;
 }
 
+.login-toggle {
+  margin-top: 20px;
+  text-align: center;
+  font-size: 14px;
+  color: #718096;
+  transition: color 0.2s ease;
+}
+
+:root[data-theme="dark"] .login-toggle {
+  color: #CBD5E1;
+}
+
+.toggle-link {
+  background: none;
+  border: none;
+  color: #2D3748;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+  font-size: inherit;
+  transition: color 0.2s ease;
+}
+
+:root[data-theme="dark"] .toggle-link {
+  color: #60A5FA;
+}
+
+.toggle-link:hover {
+  color: #1A202C;
+}
+
+:root[data-theme="dark"] .toggle-link:hover {
+  color: #93C5FD;
+}
+
 @media (max-width: 480px) {
   .login-card {
     margin: 20px;

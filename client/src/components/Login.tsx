@@ -1,11 +1,14 @@
 import { useState } from 'react'
+import { api, ApiError } from '../utils/api'
+import type { User } from '../types'
 import '../styles/Login.css'
 
 interface LoginProps {
-  onLogin: () => void
+  onLogin: (user: User) => void
 }
 
 export default function Login({ onLogin }: LoginProps) {
+  const [mode, setMode] = useState<'login' | 'signup'>('login')
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -18,22 +21,29 @@ export default function Login({ onLogin }: LoginProps) {
     setIsLoading(true)
 
     try {
-      const response = await fetch('/api/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ username, password })
-      })
-
-      if (response.ok) {
-        localStorage.setItem('authToken', 'authenticated')
-        onLogin()
+      if (mode === 'login') {
+        const { user } = await api.login(username, password)
+        onLogin(user)
       } else {
-        setError('Invalid username or password')
-        setPassword('')
+        if (password.length < 8) {
+          setError('Password must be at least 8 characters')
+          return
+        }
+        const { user } = await api.signup(username, password)
+        onLogin(user)
       }
     } catch (err) {
-      setError('Login failed. Please try again.')
+      if (err instanceof ApiError) {
+        if (err.code === 'USERNAME_TAKEN') {
+          setError('Username already taken')
+        } else if (err.code === 'AUTH_FAILED') {
+          setError('Invalid username or password')
+        } else {
+          setError(err.message)
+        }
+      } else {
+        setError(mode === 'login' ? 'Login failed' : 'Signup failed')
+      }
       setPassword('')
     } finally {
       setIsLoading(false)
@@ -75,7 +85,7 @@ export default function Login({ onLogin }: LoginProps) {
                   setPassword(e.target.value)
                   setError('')
                 }}
-                placeholder="Enter password"
+                placeholder={mode === 'signup' ? 'At least 8 characters' : 'Enter password'}
                 disabled={isLoading}
                 className="form-input"
               />
@@ -108,9 +118,27 @@ export default function Login({ onLogin }: LoginProps) {
             disabled={isLoading || !username || !password}
             className="login-button"
           >
-            {isLoading ? 'Logging in...' : 'Login'}
+            {isLoading ? (mode === 'login' ? 'Logging in...' : 'Creating account...') : mode === 'login' ? 'Login' : 'Create Account'}
           </button>
         </form>
+
+        <div className="login-toggle">
+          {mode === 'login' ? (
+            <>
+              Don't have an account?{' '}
+              <button type="button" onClick={() => setMode('signup')} className="toggle-link">
+                Sign up
+              </button>
+            </>
+          ) : (
+            <>
+              Already have an account?{' '}
+              <button type="button" onClick={() => setMode('login')} className="toggle-link">
+                Login
+              </button>
+            </>
+          )}
+        </div>
       </div>
     </div>
   )

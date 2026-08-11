@@ -30,9 +30,29 @@ export interface TakeawaysResponse {
   takeaways: string[];
 }
 
+export interface User {
+  id: number;
+  username: string;
+  createdAt?: string;
+}
+
 export interface LoginResponse {
-  token: string;
-  username?: string;
+  success: true;
+  user: User;
+}
+
+export interface ChatSession {
+  id: number;
+  title: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ChatMessage {
+  id: number;
+  role: 'user' | 'assistant';
+  content: string;
+  createdAt: string;
 }
 
 export interface VoiceRecorderState {

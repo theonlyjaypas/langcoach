@@ -1,9 +1,9 @@
 import 'dotenv/config'
 import { createServer } from 'http'
-import { enableCors, handleOptionsRequest } from './middleware'
-import { sendError } from './errors'
-import { dispatch } from './router'
-import type { MinimalRequest, MinimalResponse } from './types'
+import { enableCors, handleOptionsRequest } from './lib/middleware'
+import { sendError } from './lib/errors'
+import { dispatch } from './lib/router'
+import type { MinimalRequest, MinimalResponse } from './lib/types'
 
 const PORT = 3001
 

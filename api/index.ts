@@ -1,8 +1,8 @@
 import { VercelRequest, VercelResponse } from '@vercel/node'
-import { enableCors, handleOptionsRequest } from './middleware'
-import { sendError } from './errors'
-import { dispatch } from './router'
-import type { MinimalRequest, MinimalResponse } from './types'
+import { enableCors, handleOptionsRequest } from './lib/middleware'
+import { sendError } from './lib/errors'
+import { dispatch } from './lib/router'
+import type { MinimalRequest, MinimalResponse } from './lib/types'
 
 export default async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
   try {

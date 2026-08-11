@@ -15,6 +15,7 @@
       "memory": 1024
     }
   },
+  "excludeFiles": "api/**/{auth,authHandlers,chatSessions,db,middleware,router,sessionsHandlers,errors,types,tempFile}.ts",
   "headers": [
     {
       "source": "/api/(.*)",

@@ -5,7 +5,7 @@ import Login from './components/Login'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { ToastProvider, useToast } from './components/Toast'
 import { useAudioPlayback } from './hooks/useAudioPlayback'
-import { api, ApiError } from './utils/api'
+import { api } from './utils/api'
 import type { Message, LoadingState, User } from './types'
 import './App.css'
 
@@ -23,7 +23,6 @@ type AuthStatus = 'checking' | 'authenticated' | 'unauthenticated'
 
 function App() {
   const [authStatus, setAuthStatus] = useState<AuthStatus>('checking')
-  const [currentUser, setCurrentUser] = useState<User | null>(null)
   const [messages, setMessages] = useState<Message[]>([])
   const [inputMode, setInputMode] = useState<'text' | 'voice'>('text')
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
@@ -59,8 +58,7 @@ function App() {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const { user } = await api.getMe()
-        setCurrentUser(user)
+        await api.getMe()
         setAuthStatus('authenticated')
       } catch (error) {
         setAuthStatus('unauthenticated')
@@ -70,7 +68,6 @@ function App() {
   }, [])
 
   const handleLogin = useCallback((user: User) => {
-    setCurrentUser(user)
     setAuthStatus('authenticated')
     showToast('Logged in successfully', 'success')
   }, [showToast])
@@ -79,7 +76,6 @@ function App() {
     if (confirm('Are you sure you want to logout?')) {
       try {
         await api.logout()
-        setCurrentUser(null)
         setAuthStatus('unauthenticated')
         setMessages([])
         showToast('Logged out successfully', 'success')

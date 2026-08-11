@@ -16,7 +16,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
     const pathname = new URL(url, `http://${req.headers.host || 'localhost'}`).pathname
 
     const minimalReq: MinimalRequest = {
-      method: req.method,
+      method: req.method?.toUpperCase(),
       url: req.url,
       headers: req.headers as Record<string, string>,
       body: req.body

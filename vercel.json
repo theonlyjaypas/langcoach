@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "buildCommand": "npm run vercel-build",
+  "buildCommand": "npm run vercel-build && npm run db:setup",
   "installCommand": "npm run install:all",
   "framework": null,
   "outputDirectory": "client/dist",

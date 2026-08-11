@@ -225,7 +225,9 @@ export async function dispatch(req: MinimalRequest, res: MinimalResponse, pathna
   for (const route of routes) {
     const match = pathname.match(route.pattern)
     if (match) {
+      console.log(`[Router] Route matched: ${route.method} ${route.pattern}, got: ${method}`)
       if (route.method !== method) {
+        console.log(`[Router] Method mismatch: expected ${route.method}, got ${method}`)
         throw new ApiError(405, ErrorCodes.INVALID_METHOD, 'Method not allowed')
       }
 

@@ -16,6 +16,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
     const pathname = new URL(url, `http://${req.headers.host || 'localhost'}`).pathname
     const method = (req.method || 'GET').toUpperCase()
 
+    console.log(`[API] ${method} ${pathname}`, { body: typeof req.body, hasBody: !!req.body })
+
     let body = req.body
     if (typeof body === 'string') {
       try {

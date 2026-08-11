@@ -25,7 +25,7 @@ export default function VoiceRecorder({
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { show: showToast } = useToast();
 
   const updateState = useCallback((updates: Partial<VoiceRecorderState>) => {

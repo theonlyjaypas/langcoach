@@ -6,7 +6,7 @@ import { ErrorBoundary } from './components/ErrorBoundary'
 import { ToastProvider, useToast } from './components/Toast'
 import { useAudioPlayback } from './hooks/useAudioPlayback'
 import { api } from './utils/api'
-import type { Message, LoadingState, User } from './types'
+import type { Message, LoadingState } from './types'
 import './App.css'
 
 export default function AppWrapper() {
@@ -67,7 +67,7 @@ function App() {
     checkAuth()
   }, [])
 
-  const handleLogin = useCallback((user: User) => {
+  const handleLogin = useCallback(() => {
     setAuthStatus('authenticated')
     showToast('Logged in successfully', 'success')
   }, [showToast])

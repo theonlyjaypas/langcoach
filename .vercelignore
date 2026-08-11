@@ -1,0 +1,4 @@
+api/dev.ts
+api/lib/**
+api/*.js
+api/scripts/**

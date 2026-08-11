@@ -9,10 +9,6 @@
     "api/index.ts": {
       "maxDuration": 30,
       "memory": 1024
-    },
-    "api/dev.ts": {
-      "maxDuration": 30,
-      "memory": 1024
     }
   },
   "headers": [

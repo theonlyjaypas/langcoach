@@ -125,7 +125,7 @@ async function handleSummarize(req: MinimalRequest, res: MinimalResponse): Promi
 
   const conversationText = messages
     .map((msg) => `${msg.role === 'user' ? 'User' : 'Coach'}: ${msg.content}`)
-    .filter((line) => line.length > 0)
+    .filter((line: string) => line.length > 0)
     .join('\n')
 
   const systemContent = `You are an expert English coach. Create a comprehensive summary of the coaching session that includes:

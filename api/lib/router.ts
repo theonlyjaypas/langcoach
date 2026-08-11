@@ -15,7 +15,7 @@ import {
   handleDeleteSession,
   handlePostSessionMessage
 } from './sessionsHandlers'
-import type { MinimalRequest, MinimalResponse } from './types'
+import type { MinimalRequest, MinimalResponse, Message } from './types'
 
 const __dirname = join(fileURLToPath(import.meta.url), '..')
 const ALLOWED_VOICES = ['21m00Tcm4TlvDq8ikWAM']

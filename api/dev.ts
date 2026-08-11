@@ -15,8 +15,6 @@ const server = createServer(async (req, res) => {
   })
 
   req.on('end', async () => {
-    let mockRes: MinimalResponse | undefined
-
     try {
       const parsedUrl = new URL(req.url || '', `http://${req.headers.host}`)
       const pathname = parsedUrl.pathname
@@ -30,7 +28,7 @@ const server = createServer(async (req, res) => {
         body: body ? JSON.parse(body) : {}
       }
 
-      mockRes = {
+      const mockRes: MinimalResponse = {
         status: (code: number) => {
           res.statusCode = code
           return mockRes
@@ -60,13 +58,9 @@ const server = createServer(async (req, res) => {
         res.end(JSON.stringify({ error: 'Endpoint not found', code: 'NOT_FOUND' }))
       }
     } catch (error) {
-      if (mockRes) {
-        sendError(mockRes as any, error)
-      } else {
-        res.statusCode = 500
-        res.setHeader('Content-Type', 'application/json')
-        res.end(JSON.stringify({ error: 'Internal server error', code: 'INTERNAL_ERROR' }))
-      }
+      res.statusCode = 500
+      res.setHeader('Content-Type', 'application/json')
+      res.end(JSON.stringify({ error: 'Internal server error', code: 'INTERNAL_ERROR' }))
     }
   })
 })
